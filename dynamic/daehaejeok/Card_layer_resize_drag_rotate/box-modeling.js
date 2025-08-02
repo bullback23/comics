@@ -8,10 +8,12 @@
                 tag === 'area' ||
                 tag === 'map' ||
                 (tag === 'img' && event.target.useMap) ||
-                (tag === 'a' && event.target.href)
+                (tag === 'a' && event.target.href) ||
+                event.target.onclick
             ) return;
             if (event.touches.length > 1) return;
             if (event.target.hasAttribute && event.target.hasAttribute('href')) return;            
+            if (event.target.hasAttribute && event.target.hasAttribute('onclick')) return;            
             
             event.preventDefault();
             const touch = event.changedTouches[0];
