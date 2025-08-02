@@ -237,5 +237,30 @@
 
         });
 
+        // 맨 아래에 추가
+        if ('ontouchstart' in document.documentElement) {
+          const simulateMouseEvent = function (event, simulatedType) {
+            if (event.touches.length > 1) return;
+            event.preventDefault();
+            const touch = event.changedTouches[0];
+            const simulatedEvent = new MouseEvent(simulatedType, {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+              detail: 1,
+              screenX: touch.screenX,
+              screenY: touch.screenY,
+              clientX: touch.clientX,
+              clientY: touch.clientY,
+              buttons: 1
+            });
+            event.target.dispatchEvent(simulatedEvent);
+          };
+        
+          document.addEventListener("touchstart", e => simulateMouseEvent(e, "mousedown"), true);
+          document.addEventListener("touchmove", e => simulateMouseEvent(e, "mousemove"), true);
+          document.addEventListener("touchend", e => simulateMouseEvent(e, "mouseup"), true);
+        }
+
     };
 }(jQuery));
