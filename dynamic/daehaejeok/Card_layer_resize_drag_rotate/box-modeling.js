@@ -3,7 +3,11 @@
     if ('ontouchstart' in document.documentElement) {
         const simulateMouseEvent = function (event, simulatedType) {
             // <area> 태그는 무시 (링크 정상 동작)
-            if (event.target.tagName === 'AREA') return;
+            if (
+                tag === 'area' ||
+                tag === 'map' ||
+                (tag === 'img' && event.target.useMap)
+            ) return;
             if (event.touches.length > 1) return;
             event.preventDefault();
             const touch = event.changedTouches[0];
