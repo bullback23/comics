@@ -1,6 +1,42 @@
 (function ($) {
-    $.fn.boxModeling = function (options) {
+    // ✅ Touch Punch 내장 - 모바일 터치 지원을 위한 마우스 이벤트 시뮬레이션
+    if ('ontouchstart' in document.documentElement) {
+        const simulateMouseEvent = function (event, simulatedType) {
+            // <area>, <map>, usemap이 있는 <img>는 무시 (링크 정상 동작)
+            const tag = event.target.tagName;
+            if (
+                tag === 'area' ||
+                tag === 'map' ||
+                (tag === 'img' && event.target.useMap) ||
+                (tag === 'a' && event.target.href) ||
+                event.target.onclick
+            ) return;
+            if (event.touches.length > 1) return;
+            if (event.target.hasAttribute && event.target.hasAttribute('href')) return;            
+            if (event.target.hasAttribute && event.target.hasAttribute('onclick')) return;            
+            
+            event.preventDefault();
+            const touch = event.changedTouches[0];
+            const simulatedEvent = new MouseEvent(simulatedType, {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                detail: 1,
+                screenX: touch.screenX,
+                screenY: touch.screenY,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                buttons: 1
+            });
+            touch.target.dispatchEvent(simulatedEvent);
+        };
 
+        document.addEventListener("touchstart", e => simulateMouseEvent(e, "mousedown"), true);
+        document.addEventListener("touchmove", e => simulateMouseEvent(e, "mousemove"), true);
+        document.addEventListener("touchend", e => simulateMouseEvent(e, "mouseup"), true);
+    }
+
+    $.fn.boxModeling = function (options) {
         const settings = $.extend({
             boxSelector: 'box',
             handlerClass: 'resize-handler',
@@ -9,7 +45,6 @@
             resize: true,
             rotate: true,
             move: true,
-
         }, options);
 
         const boxHandlers =
@@ -26,13 +61,8 @@
             '</div>';
 
         return $(this).each(function () {
-
             const box = this;
-
-            // $(box).css('transform', $(box).css('transform') + 'translate(-50%, -50%)');
-
             let initX, initY, mousePressX, mousePressY, initW, initH, initRotate;
-
             $(box).append(boxHandlers);
 
             const hLeftTop = $(box).find('.' + settings.handlerClass + '.left-top');
@@ -43,12 +73,11 @@
             const hRightTop = $(box).find('.' + settings.handlerClass + '.right-top');
             const hRightMid = $(box).find('.' + settings.handlerClass + '.right-mid');
             const hRightBot = $(box).find('.' + settings.handlerClass + '.right-bot');
-
             const hRotate = $(box).find('.' + settings.handlerClass + '.rotate');
 
             function repositionElement(x, y) {
-                $(box).css('left', x + 'px');    // <=
-                $(box).css('top', y + 'px');     // <=
+                $(box).css('left', x + 'px');
+                $(box).css('top', y + 'px');
             }
 
             function resize(w, h) {
@@ -73,41 +102,35 @@
             }
 
             function rotateBox(deg) {
-                $(box).css('transform', 'translate(-50%, -50%) rotate(' + deg + 'deg)');      // <=
+                $(box).css('transform', 'translate(-50%, -50%) rotate(' + deg + 'deg)');
             }
 
             function dragSupport(event) {
-                if ($(event.target).hasClass(settings.handlerClass)) {
-                    return;
-                }
-
-                initX = box.offsetLeft;         // <=
-                initY = box.offsetTop;          // <=
+                if ($(event.target).hasClass(settings.handlerClass)) return;
+                initX = box.offsetLeft;
+                initY = box.offsetTop;
                 mousePressX = event.clientX;
                 mousePressY = event.clientY;
 
                 function eventMoveHandler(event) {
-                    repositionElement(initX + (event.clientX - mousePressX),
-                        initY + (event.clientY - mousePressY));
+                    repositionElement(initX + (event.clientX - mousePressX), initY + (event.clientY - mousePressY));
                 }
 
-                box.addEventListener('mousemove', eventMoveHandler, false);         // <=
+                box.addEventListener('mousemove', eventMoveHandler, false);
                 window.addEventListener('mouseup', function eventEndHandler() {
-                    box.removeEventListener('mousemove', eventMoveHandler, false);  // <=
+                    box.removeEventListener('mousemove', eventMoveHandler, false);
                     window.removeEventListener('mouseup', eventEndHandler);
                 }, false);
             }
 
             function resizeHandler(event, left, top, xResize, yResize) {
-                initX = box.offsetLeft;         // <=
-                initY = box.offsetTop;          // <=
+                initX = box.offsetLeft;
+                initY = box.offsetTop;
                 mousePressX = event.clientX;
                 mousePressY = event.clientY;
-
                 initW = box.offsetWidth;
                 initH = box.offsetHeight;
-
-                initRotate = getRotation(box);      // <=
+                initRotate = getRotation(box);
 
                 const initRadians = initRotate * Math.PI / 180;
                 const cosFraction = Math.cos(initRadians);
@@ -118,7 +141,6 @@
                     const hDiff = (event.clientY - mousePressY);
                     let rotatedWDiff = cosFraction * wDiff + sinFraction * hDiff;
                     let rotatedHDiff = cosFraction * hDiff - sinFraction * wDiff;
-
                     let newW = initW, newH = initH, newX = initX, newY = initY;
 
                     if (xResize) {
@@ -161,7 +183,6 @@
                     repositionElement(newX, newY);
                 }
 
-                // window addEventListener
                 window.addEventListener('mousemove', eventMoveHandler, false);
                 window.addEventListener('mouseup', function eventEndHandler() {
                     window.removeEventListener('mousemove', eventMoveHandler, false);
@@ -170,8 +191,8 @@
             }
 
             function rotate(event) {
-                initX = box.offsetLeft;             // <=
-                initY = box.offsetTop;              // <=
+                initX = box.offsetLeft;
+                initY = box.offsetTop;
                 mousePressX = event.clientX;
                 mousePressY = event.clientY;
 
@@ -193,15 +214,15 @@
 
             function editingStyle(event) {
                 $('.' + settings.handlerClass).hide();
-                $(box).css('z-index', getComputedStyle(document.body).getPropertyValue('--zi-' + $(box).data('id')) );      // <= <=
+                $(box).css('z-index', getComputedStyle(document.body).getPropertyValue('--zi-' + $(box).data('id')));
 
                 if ($(event.target).hasClass(settings.boxSelector)) {
                     $(event.target).find('.' + settings.handlerClass).show();
-                    $(event.target).css('z-index', '1000');         // <=
+                    $(event.target).css('z-index', '1000');
                 } else if ($(event.target).hasClass(settings.handlerClass)) {
                     $(event.target).show();
                     $(event.target).siblings('.' + settings.handlerClass).show();
-                    $(event.target).parents('.' + settings.boxSelector).css('z-index', '1000');         // <=
+                    $(event.target).parents('.' + settings.boxSelector).css('z-index', '1000');
                 }
 
                 if (!settings.resize) {
@@ -210,10 +231,8 @@
                 if (!settings.rotate) {
                     $($(event.target).parents().find('.' + settings.handlerClass + '.rotate').hide());
                 }
-
             }
 
-            // listeners
             if (settings.move) {
                 box.addEventListener('mousedown', function (event) { return dragSupport(event); }, false);
             }
@@ -234,8 +253,6 @@
             }
 
             $(document).mousedown(function (event) { return editingStyle(event); });
-
         });
-
     };
 }(jQuery));
