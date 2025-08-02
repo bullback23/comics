@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="./js/lotteryScratch.js"></script>
+  <script>
+    window.addEventListener('load', function () {
+
+      var lotteryScratchGo1 = new lotteryScratch(
+        document.querySelector('#lotteryScratch'), 256,699, 20,
+        './images/75-1.jpg',
+      );
+
+      lotteryScratchGo1
+        .LotteryScratchInit()
+        .LotteryScratchCallback(function () {
+          document.querySelector('#lotteryScratch').style.backgroundImage = "url('./images/75-2.jpg')";
+        }).LotteryScratch();
+
+    });
+  </script>
+</head>
+
+<body>
+  <div id="lotteryScratch"></div>
+</body>
+
+</html>
