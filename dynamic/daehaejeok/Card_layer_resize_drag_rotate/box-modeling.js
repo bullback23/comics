@@ -1,6 +1,5 @@
 (function ($) {
     $.fn.boxModeling = function (options) {
-
         const settings = $.extend({
             boxSelector: 'box',
             handlerClass: 'resize-handler',
@@ -9,7 +8,6 @@
             resize: true,
             rotate: true,
             move: true,
-
         }, options);
 
         const boxHandlers =
@@ -26,241 +24,192 @@
             '</div>';
 
         return $(this).each(function () {
-
             const box = this;
-
-            // $(box).css('transform', $(box).css('transform') + 'translate(-50%, -50%)');
-
             let initX, initY, mousePressX, mousePressY, initW, initH, initRotate;
-
             $(box).append(boxHandlers);
 
-            const hLeftTop = $(box).find('.' + settings.handlerClass + '.left-top');
-            const hLeftMid = $(box).find('.' + settings.handlerClass + '.left-mid');
-            const hLeftBot = $(box).find('.' + settings.handlerClass + '.left-bot');
-            const hCenterTop = $(box).find('.' + settings.handlerClass + '.center-top');
-            const hCenterBot = $(box).find('.' + settings.handlerClass + '.center-bot');
-            const hRightTop = $(box).find('.' + settings.handlerClass + '.right-top');
-            const hRightMid = $(box).find('.' + settings.handlerClass + '.right-mid');
-            const hRightBot = $(box).find('.' + settings.handlerClass + '.right-bot');
+            const h = c => $(box).find('.' + settings.handlerClass + '.' + c);
+            const hLeftTop = h('left-top'), hLeftMid = h('left-mid'), hLeftBot = h('left-bot');
+            const hCenterTop = h('center-top'), hCenterBot = h('center-bot');
+            const hRightTop = h('right-top'), hRightMid = h('right-mid'), hRightBot = h('right-bot');
+            const hRotate = h('rotate');
 
-            const hRotate = $(box).find('.' + settings.handlerClass + '.rotate');
+            const getClientXY = e => {
+                if (e.touches && e.touches.length) e = e.touches[0];
+                return { x: e.clientX, y: e.clientY };
+            };
 
             function repositionElement(x, y) {
-                $(box).css('left', x + 'px');    // <=
-                $(box).css('top', y + 'px');     // <=
+                $(box).css({ left: x + 'px', top: y + 'px' });
             }
 
             function resize(w, h) {
-                $(box).css('width', w + 'px');
-                $(box).css('height', h + 'px');
+                $(box).css({ width: w + 'px', height: h + 'px' });
             }
 
-            function getRotation(e) {
-                const st = window.getComputedStyle(e, null);
-                const tm = st.getPropertyValue("-webkit-transform") ||
-                    st.getPropertyValue("-moz-transform") ||
-                    st.getPropertyValue("-ms-transform") ||
-                    st.getPropertyValue("-o-transform") ||
-                    st.getPropertyValue("transform") ||
-                    "none";
-                if (tm !== "none") {
-                    const values = tm.split('(')[1].split(')')[0].split(',');
-                    const angle = Math.round(Math.atan2(Number.parseFloat(values[1]), Number.parseFloat(values[0])) * (180 / Math.PI));
-                    return (angle < 0 ? angle + 360 : angle);
-                }
-                return 0;
+            function getRotation(el) {
+                const tm = getComputedStyle(el).transform;
+                if (!tm || tm === 'none') return 0;
+                const v = tm.split('(')[1].split(')')[0].split(',');
+                return Math.round(Math.atan2(v[1], v[0]) * (180 / Math.PI));
             }
 
             function rotateBox(deg) {
-                $(box).css('transform', 'translate(-50%, -50%) rotate(' + deg + 'deg)');      // <=
+                $(box).css('transform', 'translate(-50%, -50%) rotate(' + deg + 'deg)');
             }
 
-            function dragSupport(event) {
-                if ($(event.target).hasClass(settings.handlerClass)) {
-                    return;
-                }
+            function dragSupport(e) {
+                if ($(e.target).hasClass(settings.handlerClass)) return;
+                e.preventDefault();
+                const { x, y } = getClientXY(e);
+                initX = box.offsetLeft;
+                initY = box.offsetTop;
+                mousePressX = x;
+                mousePressY = y;
 
-                initX = box.offsetLeft;         // <=
-                initY = box.offsetTop;          // <=
-                mousePressX = event.clientX;
-                mousePressY = event.clientY;
+                const moveHandler = ev => {
+                    const { x, y } = getClientXY(ev);
+                    repositionElement(initX + (x - mousePressX), initY + (y - mousePressY));
+                };
 
-                function eventMoveHandler(event) {
-                    repositionElement(initX + (event.clientX - mousePressX),
-                        initY + (event.clientY - mousePressY));
-                }
+                const upHandler = () => {
+                    window.removeEventListener('mousemove', moveHandler);
+                    window.removeEventListener('mouseup', upHandler);
+                    window.removeEventListener('touchmove', moveHandler);
+                    window.removeEventListener('touchend', upHandler);
+                };
 
-                box.addEventListener('mousemove', eventMoveHandler, false);         // <=
-                window.addEventListener('mouseup', function eventEndHandler() {
-                    box.removeEventListener('mousemove', eventMoveHandler, false);  // <=
-                    window.removeEventListener('mouseup', eventEndHandler);
-                }, false);
+                window.addEventListener('mousemove', moveHandler);
+                window.addEventListener('mouseup', upHandler);
+                window.addEventListener('touchmove', moveHandler);
+                window.addEventListener('touchend', upHandler);
             }
 
-            function resizeHandler(event, left, top, xResize, yResize) {
-                initX = box.offsetLeft;         // <=
-                initY = box.offsetTop;          // <=
-                mousePressX = event.clientX;
-                mousePressY = event.clientY;
-
+            function resizeHandler(e, left, top, xResize, yResize) {
+                e.preventDefault();
+                const { x, y } = getClientXY(e);
+                initX = box.offsetLeft;
+                initY = box.offsetTop;
                 initW = box.offsetWidth;
                 initH = box.offsetHeight;
+                mousePressX = x;
+                mousePressY = y;
 
-                initRotate = getRotation(box);      // <=
+                const initRotate = getRotation(box);
+                const cos = Math.cos(initRotate * Math.PI / 180);
+                const sin = Math.sin(initRotate * Math.PI / 180);
 
-                const initRadians = initRotate * Math.PI / 180;
-                const cosFraction = Math.cos(initRadians);
-                const sinFraction = Math.sin(initRadians);
-
-                function eventMoveHandler(event) {
-                    const wDiff = (event.clientX - mousePressX);
-                    const hDiff = (event.clientY - mousePressY);
-                    let rotatedWDiff = cosFraction * wDiff + sinFraction * hDiff;
-                    let rotatedHDiff = cosFraction * hDiff - sinFraction * wDiff;
+                const moveHandler = ev => {
+                    const { x, y } = getClientXY(ev);
+                    let dx = x - mousePressX;
+                    let dy = y - mousePressY;
+                    let rotatedX = cos * dx + sin * dy;
+                    let rotatedY = cos * dy - sin * dx;
 
                     let newW = initW, newH = initH, newX = initX, newY = initY;
-
                     if (xResize) {
-                        if (left) {
-                            newW = initW - rotatedWDiff;
-                            if (newW < settings.minWidth) {
-                                newW = settings.minWidth;
-                                rotatedWDiff = initW - settings.minWidth;
-                            }
-                        } else {
-                            newW = initW + rotatedWDiff;
-                            if (newW < settings.minWidth) {
-                                newW = settings.minWidth;
-                                rotatedWDiff = settings.minWidth - initW;
-                            }
-                        }
-                        newX += 0.5 * rotatedWDiff * cosFraction;
-                        newY += 0.5 * rotatedWDiff * sinFraction;
+                        if (left) newW = initW - rotatedX;
+                        else newW = initW + rotatedX;
+                        newW = Math.max(settings.minWidth, newW);
+                        newX += left ? initW - newW : 0;
                     }
-
                     if (yResize) {
-                        if (top) {
-                            newH = initH - rotatedHDiff;
-                            if (newH < settings.minHeight) {
-                                newH = settings.minHeight;
-                                rotatedHDiff = initH - settings.minHeight;
-                            }
-                        } else {
-                            newH = initH + rotatedHDiff;
-                            if (newH < settings.minHeight) {
-                                newH = settings.minHeight;
-                                rotatedHDiff = settings.minHeight - initH;
-                            }
-                        }
-                        newX -= 0.5 * rotatedHDiff * sinFraction;
-                        newY += 0.5 * rotatedHDiff * cosFraction;
+                        if (top) newH = initH - rotatedY;
+                        else newH = initH + rotatedY;
+                        newH = Math.max(settings.minHeight, newH);
+                        newY += top ? initH - newH : 0;
                     }
-
                     resize(newW, newH);
                     repositionElement(newX, newY);
-                }
+                };
 
-                // window addEventListener
-                window.addEventListener('mousemove', eventMoveHandler, false);
-                window.addEventListener('mouseup', function eventEndHandler() {
-                    window.removeEventListener('mousemove', eventMoveHandler, false);
-                    window.removeEventListener('mouseup', eventEndHandler);
-                }, false);
+                const upHandler = () => {
+                    window.removeEventListener('mousemove', moveHandler);
+                    window.removeEventListener('mouseup', upHandler);
+                    window.removeEventListener('touchmove', moveHandler);
+                    window.removeEventListener('touchend', upHandler);
+                };
+
+                window.addEventListener('mousemove', moveHandler);
+                window.addEventListener('mouseup', upHandler);
+                window.addEventListener('touchmove', moveHandler);
+                window.addEventListener('touchend', upHandler);
             }
 
-            function rotate(event) {
-                initX = box.offsetLeft;             // <=
-                initY = box.offsetTop;              // <=
-                mousePressX = event.clientX;
-                mousePressY = event.clientY;
+            function rotate(e) {
+                e.preventDefault();
+                const { x, y } = getClientXY(e);
+                const rect = box.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
 
-                const arrowRects = box.getBoundingClientRect();
-                const arrowX = arrowRects.left + arrowRects.width / 2;
-                const arrowY = arrowRects.top + arrowRects.height / 2;
-
-                function eventMoveHandler(event) {
-                    const angle = Math.atan2(event.clientY - arrowY, event.clientX - arrowX) + Math.PI / 2;
+                const moveHandler = ev => {
+                    const { x: nx, y: ny } = getClientXY(ev);
+                    const angle = Math.atan2(ny - cy, nx - cx) + Math.PI / 2;
                     rotateBox(angle * 180 / Math.PI);
-                }
+                };
 
-                window.addEventListener('mousemove', eventMoveHandler, false);
-                window.addEventListener('mouseup', function eventEndHandler() {
-                    window.removeEventListener('mousemove', eventMoveHandler, false);
-                    window.removeEventListener('mouseup', eventEndHandler);
-                }, false);
+                const upHandler = () => {
+                    window.removeEventListener('mousemove', moveHandler);
+                    window.removeEventListener('mouseup', upHandler);
+                    window.removeEventListener('touchmove', moveHandler);
+                    window.removeEventListener('touchend', upHandler);
+                };
+
+                window.addEventListener('mousemove', moveHandler);
+                window.addEventListener('mouseup', upHandler);
+                window.addEventListener('touchmove', moveHandler);
+                window.addEventListener('touchend', upHandler);
             }
 
             function editingStyle(event) {
                 $('.' + settings.handlerClass).hide();
-                $(box).css('z-index', getComputedStyle(document.body).getPropertyValue('--zi-' + $(box).data('id')) );      // <= <=
+                $(box).css('z-index', getComputedStyle(document.body).getPropertyValue('--zi-' + $(box).data('id')));
 
                 if ($(event.target).hasClass(settings.boxSelector)) {
                     $(event.target).find('.' + settings.handlerClass).show();
-                    $(event.target).css('z-index', '1000');         // <=
+                    $(event.target).css('z-index', '1000');
                 } else if ($(event.target).hasClass(settings.handlerClass)) {
                     $(event.target).show();
                     $(event.target).siblings('.' + settings.handlerClass).show();
-                    $(event.target).parents('.' + settings.boxSelector).css('z-index', '1000');         // <=
+                    $(event.target).parents('.' + settings.boxSelector).css('z-index', '1000');
                 }
 
                 if (!settings.resize) {
-                    $($(event.target).parents().find('.' + settings.handlerClass + '.resize').hide());
+                    $('.' + settings.handlerClass + '.resize').hide();
                 }
                 if (!settings.rotate) {
-                    $($(event.target).parents().find('.' + settings.handlerClass + '.rotate').hide());
+                    $('.' + settings.handlerClass + '.rotate').hide();
                 }
-
             }
 
-            // listeners
             if (settings.move) {
-                box.addEventListener('mousedown', function (event) { return dragSupport(event); }, false);
+                box.addEventListener('mousedown', dragSupport);
+                box.addEventListener('touchstart', dragSupport, { passive: false });
             }
 
             if (settings.resize) {
-                hLeftTop.mousedown(function (event) { return resizeHandler(event, true, true, true, true); });
-                hLeftMid.mousedown(function (event) { return resizeHandler(event, true, false, true, false); });
-                hLeftBot.mousedown(function (event) { return resizeHandler(event, true, false, true, true); });
-                hCenterTop.mousedown(function (event) { return resizeHandler(event, false, true, false, true); });
-                hCenterBot.mousedown(function (event) { return resizeHandler(event, false, false, false, true); });
-                hRightTop.mousedown(function (event) { return resizeHandler(event, false, true, true, true); });
-                hRightMid.mousedown(function (event) { return resizeHandler(event, false, false, true, false); });
-                hRightBot.mousedown(function (event) { return resizeHandler(event, false, false, true, true); });
+                const bind = (el, l, t, xR, yR) => {
+                    el.on('mousedown', e => resizeHandler(e, l, t, xR, yR));
+                    el.on('touchstart', e => resizeHandler(e, l, t, xR, yR));
+                };
+                bind(hLeftTop, true, true, true, true);
+                bind(hLeftMid, true, false, true, false);
+                bind(hLeftBot, true, false, true, true);
+                bind(hCenterTop, false, true, false, true);
+                bind(hCenterBot, false, false, false, true);
+                bind(hRightTop, false, true, true, true);
+                bind(hRightMid, false, false, true, false);
+                bind(hRightBot, false, false, true, true);
             }
 
             if (settings.rotate) {
-                hRotate.get(0).addEventListener('mousedown', function (event) { return rotate(event); }, false);
+                hRotate.on('mousedown', rotate);
+                hRotate.on('touchstart', rotate);
             }
 
-            $(document).mousedown(function (event) { return editingStyle(event); });
-
+            $(document).on('mousedown', editingStyle);
+            $(document).on('touchstart', editingStyle);
         });
-
-        // 맨 아래에 추가
-        if ('ontouchstart' in document.documentElement) {
-          const simulateMouseEvent = function (event, simulatedType) {
-            if (event.touches.length > 1) return;
-            event.preventDefault();
-            const touch = event.changedTouches[0];
-            const simulatedEvent = new MouseEvent(simulatedType, {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              detail: 1,
-              screenX: touch.screenX,
-              screenY: touch.screenY,
-              clientX: touch.clientX,
-              clientY: touch.clientY,
-              buttons: 1
-            });
-            event.target.dispatchEvent(simulatedEvent);
-          };
-        
-          document.addEventListener("touchstart", e => simulateMouseEvent(e, "mousedown"), true);
-          document.addEventListener("touchmove", e => simulateMouseEvent(e, "mousemove"), true);
-          document.addEventListener("touchend", e => simulateMouseEvent(e, "mouseup"), true);
-        }
-
     };
 }(jQuery));
