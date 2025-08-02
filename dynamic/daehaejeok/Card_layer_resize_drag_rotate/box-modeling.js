@@ -2,6 +2,8 @@
     // ✅ Touch Punch 내장 - 모바일 터치 지원을 위한 마우스 이벤트 시뮬레이션
     if ('ontouchstart' in document.documentElement) {
         const simulateMouseEvent = function (event, simulatedType) {
+            // <area> 태그는 무시 (링크 정상 동작)
+            if (event.target.tagName === 'AREA') return;
             if (event.touches.length > 1) return;
             event.preventDefault();
             const touch = event.changedTouches[0];
