@@ -2,7 +2,7 @@ name: Simple Deploy
 
 on:
   push:
-    branches: [master]  # 또는 master
+    branches: [master]  # 또는 main
 
 jobs:
   deploy:
@@ -12,8 +12,14 @@ jobs:
 
       - name: Copy only changed files
         run: |
-          mkdir changed
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs -I{} bash -c 'mkdir -p changed/$(dirname "{}"); cp "{}" changed/{}' || true
+          rm -rf changed
+          mkdir -p changed
+          if [ -n "${{ github.event.before }}" ] && git cat-file -e ${{ github.event.before }} 2>/dev/null; then
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs -I{} bash -c 'mkdir -p changed/$(dirname "{}"); cp "{}" changed/{}'
+          else
+            # 첫 커밋이거나 이전 커밋이 없을 때 전체 복사
+            find . -type f ! -path "./.git/*" ! -path "./changed/*" -exec bash -c 'mkdir -p changed/$(dirname "{}"); cp "{}" changed/{}' \;
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -21,4 +27,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: changed
           publish_branch: gh-pages
-          
