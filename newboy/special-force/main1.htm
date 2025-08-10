@@ -11,7 +11,50 @@
 	<td>득점</td>
 	<td><input type="text" value="0" size="10"></td>
 </tr>
+<tr>
+	<td>
+		<input type="text" id="htm_name" placeholder="htm 이름 (예: 0001)" style="width:120px;" enterkeyhint="go" onkeydown="if(event.key==='Enter'){loadGameToParent();}">
+		<button type="button" onclick="loadGameToParent();">페이지 불러오기</button>
+	</td>
+</tr>
 </table>
+
+<script>
+	
+function loadGameToParent()
+{
+	let htm_name = document.getElementById('htm_name').value;
+	if (htm_name.length < 4) {
+		htm_name = htm_name.padStart(4, '0');
+		document.getElementById('htm_name').value = htm_name;
+	}
+
+	if (htm_name.length > 4) {
+		htm_name = htm_name.slice(-4);
+		document.getElementById('htm_name').value = htm_name;
+	}
+	
+	let gameFrame = window.parent.document.querySelector('frame[name="game"]');
+	if (gameFrame) {
+		gameFrame.src = `${htm_name}.htm`;
+		gameFrame.onload = function() {
+			try {
+				// 프레임 내 문서가 정상적으로 로드되었는지 확인
+				if (gameFrame.contentDocument.body.innerHTML.trim() === "") {
+					alert("페이지가 없습니다.");
+					return;
+				}
+			} catch (e) {
+				alert("페이지가 없습니다.");
+				return;
+			}
+		};
+	} else {
+		alert("게임 영역을 찾을 수 없습니다.");
+		return;
+	}
+}
+</script>
 
 </body>
 </html>
