@@ -15,6 +15,12 @@
 		<div id="trump_card_1" style="font-size:50px;"></div>
 	</td>
 </tr>
+<tr>
+	<td>
+		<input type="text" id="htm_name" placeholder="htm 이름 (예: 0001)" style="width:120px;">
+		<button type="button" onclick="loadGameToParent();">게임 영역 불러오기</button>
+	</td>
+</tr>
 </table>
 
 <script>
@@ -33,6 +39,22 @@ function rollingDice()
 	
 	y = Math.floor(Math.random() * 13 + 1);
 	element.innerHTML += y;
+}
+
+function loadGameToParent()
+{
+	let htm_name = document.getElementById('htm_name').value;
+	if (htm_name.length < 4) {
+		alert("htm 이름을 4글자 이상 입력하세요.");
+		return;
+	}
+	
+	let gameFrame = window.parent.document.querySelector('frame[name="game"]');
+	if (gameFrame) {
+		gameFrame.src = `main/${htm_name}.htm`;
+	} else {
+		alert("게임 영역을 찾을 수 없습니다.");
+	}
 }
 
 </script>
