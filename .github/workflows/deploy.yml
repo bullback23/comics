@@ -16,3 +16,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .   # 저장소 루트 전체를 배포
+          publish_branch: gh-pages
