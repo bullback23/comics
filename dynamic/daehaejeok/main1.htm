@@ -45,8 +45,13 @@ function loadGameToParent()
 {
 	let htm_name = document.getElementById('htm_name').value;
 	if (htm_name.length < 4) {
-		alert("htm 이름을 4글자 이상 입력하세요.");
-		return;
+		htm_name = htm_name.padStart(4, '0');
+		document.getElementById('htm_name').value = htm_name;
+	}
+
+	if (htm_name.length > 4) {
+		htm_name = htm_name.slice(-4);
+		document.getElementById('htm_name').value = htm_name;
 	}
 	
 	let gameFrame = window.parent.document.querySelector('frame[name="game"]');
