@@ -51,7 +51,7 @@ function loadGameToParent()
 	
 	let gameFrame = window.parent.document.querySelector('frame[name="game"]');
 	if (gameFrame) {
-		gameFrame.src = `main/${htm_name}.htm`;
+		gameFrame.src = `${htm_name}.htm`;
 	} else {
 		alert("게임 영역을 찾을 수 없습니다.");
 	}
