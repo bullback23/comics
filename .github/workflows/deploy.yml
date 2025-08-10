@@ -10,10 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # 빌드 없이 바로 배포(예: GitHub Pages에 업로드)
+      - name: Copy only changed files
+        run: |
+          mkdir changed
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs -I{} bash -c 'mkdir -p changed/$(dirname "{}"); cp "{}" changed/{}' || true
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .   # 저장소 루트 전체를 배포
+          publish_dir: changed
           publish_branch: gh-pages
+          
