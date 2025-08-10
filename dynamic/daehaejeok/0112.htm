@@ -1,0 +1,45 @@
+<html>
+<head>
+<meta charset="utf-8">
+	<link href="https://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/flick/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
+			integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+			crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body oncontextmenu='return false' ondragstart='return false' onselectstart='return false'>
+<img src="images/0112.jpg" alt="" width="446" height="640" usemap="#Map"/>
+<map name="Map">
+  <area shape="rect" coords="225,542,320,571" href="0116.htm" target="_self">
+  <area shape="rect" coords="225,572,320,601" href="0131.htm" target="_self">
+  <area shape="rect" coords="361,553,444,582" onclick="$('#trump_card').show(); $('#iframe1').attr('src', 'Trump_Card/index.html');" target="_self">
+</map>
+<!--
+	div 요소 내부 ifrmae 새로고침 호출 방법		https://yangyag.tistory.com/346
+	div 요소 보이기, 숨기기, 토글				https://hianna.tistory.com/851
+-->
+
+<div id="trump_card" class="box " data-id="1" style="left: var(--left-2); top: var(--top-2); z-index: var(--zi-1); width: var(--width-2); height: var(--height-2);">
+	<iframe id="iframe1" width="110px" height="160px" style="border:none" src="Trump_Card/index.html" ></iframe>
+</div>
+
+
+</body>
+
+
+<script src="Card_layer_resize_drag_rotate/box-modeling.js"></script>
+<script>
+	$('.box').boxModeling({
+		rotate: true,
+		resize: false,
+		move: true,
+	});
+	
+	$('#trump_card').hide();
+</script>
+
+</html>
