@@ -142,11 +142,6 @@ function loadGameToParent()
 		document.getElementById('htm_name').value = htm_name;
 	}
 
-	if (htm_name.length > 4) {
-		htm_name = htm_name.slice(-4);
-		document.getElementById('htm_name').value = htm_name;
-	}
-	
 	let gameFrame = window.parent.document.querySelector('frame[name="game"]');
 	if (gameFrame) {
 		gameFrame.src = `${htm_name}.htm`;
