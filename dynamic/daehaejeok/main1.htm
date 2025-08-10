@@ -17,7 +17,7 @@
 </tr>
 <tr>
 	<td>
-		<input type="text" id="htm_name" placeholder="htm 이름 (예: 0001)" style="width:120px;">
+		<input type="text" id="htm_name" placeholder="htm 이름 (예: 0001)" style="width:120px;" enterkeyhint="go" onkeydown="if(event.key==='Enter'){loadGameToParent();}">
 		<button type="button" onclick="loadGameToParent();">게임 영역 불러오기</button>
 	</td>
 </tr>
