@@ -1,0 +1,46 @@
+body { background: #fafafa; }
+	.box {
+		position: absolute;
+		user-select: none;
+		transform: translate(-50%, -50%);
+	}
+
+	.resize-handler {
+		height: 10px;
+		width: 10px;
+		background-color: #0055ff;
+		position: absolute;
+		border-radius: 100px;
+		border: 1px solid #ffffff;
+		user-select: none;
+		display: none;
+	}
+	.resize-handler:hover {background-color: #0000cc;}
+	.resize-handler.rotate {cursor: url('https://findicons.com/files/icons/1620/crystal_project/16/rotate_ccw.png'), auto;}
+
+	:root {
+		/* id-1*/
+		--left-1: 50%;
+		--top-1: 54%;
+		--width-1: 357px;
+		--height-1: 308px;
+		--bg-1: #ffff00cc;
+		--zi-1: 1;
+
+		/* id-2 */
+		--left-2: 50%;
+		--top-2: 54%;
+		--width-2: 290px;
+		--height-2: 296px;
+		--bg-2: #ffff00cc;
+		--zi-2: 2;
+	}
+	
+	#Showdown_card{ background-image: url("images/Showdown_card_front.png"); }
+	#Showdown_card.toggled{ background-image:url("images/Showdown_card_back.png"); }
+	
+	#Lupin_card{ background-image: url("images/Lupin_card_front.png"); }
+	#Lupin_card.toggled{ background-image:url("images/Lupin_card_back.png"); }
+	
+	#trump_card { display:visible; }
+	#trump_card.toggled { display:none; }
